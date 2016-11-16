@@ -1,0 +1,11 @@
+0.  This is the string representing the maximum length of a word in the dictionary
+1.  Return resource usage measures for 
+2.  16
+3.  To gain access to all the members in the struct
+4.  Declare a string array and store the address in word. First, use c to get the address of the next character in file, if the character is valid, append to the string array:word. Ignore words longer than the maximum length and digial numbers. Read the next character in file until a complete word is found
+5.  We will have trouble differenitating and eliminating the number, apostrophes in the string. To ignore the words with length beyond the limit will also become a challenge.
+6.  To avoid changing the value of the address of input; to avoid losing the pointers
+7.  TODO
+8.  TODO
+9.  TODO
+10. TODO

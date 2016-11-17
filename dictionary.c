@@ -11,12 +11,41 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dictionary.h"
 
-node* root =  NULL;
+// Alphabet size (# of symbols)
+#define ALPHABET_SIZE (27)
+
+// Converts key current character into index
+// use only 'a' through 'z' and lower case
+#define CHAR_TO_INDEX(c) (c - 'a')
+
+TrieNode* root =  NULL;
 unsigned int* countWord = NULL;
 //char* tempWord = NULL;
+
+// Returns new trie node (initialized to NULLs)
+TrieNode *getNode(void)
+{
+    TrieNode *pNode = NULL;
+ 
+    pNode = malloc(sizeof(struct TrieNode));
+ 
+    if (pNode)
+    {
+        int i;
+ 
+        pNode->isLeaf = false;
+ 
+        for (i = 0; i < ALPHABET_SIZE; i++)
+            pNode->children[i] = NULL;
+    }
+ 
+    return pNode;
+}
+
 
 /*
  * Returns true if word is in dictionary else false.
@@ -24,41 +53,61 @@ unsigned int* countWord = NULL;
 bool check(const char* word)
 {
     // TODO
-    node* root2 = root;
-    int wordIndex;
-    while (true)
+    TrieNode *pCrawl = root;
+    int level;
+    int length = strlen(word);
+    int index;
+    
+    for (level = 0; level < length; level++)
     {
-        if (*word == '\'')
+        if (word[level] == '\'')
         {
-            wordIndex = 26;
+            index = 26;
         }
         else
         {
-            wordIndex = tolower(*word) - 'a';
+            index = CHAR_TO_INDEX(tolower(word[level]));
         }
-        if(root2 -> children[wordIndex] == NULL)
-        {
+        
+        if (pCrawl->children[index] == NULL)
             return false;
+ 
+        pCrawl = pCrawl->children[index];
+    }
+ 
+    return (pCrawl != NULL && pCrawl->isLeaf);
+}
+
+// If not present, inserts key into trie
+// If the key is prefix of trie node, just marks leaf node
+void insert(struct TrieNode *root, const char *key)
+{
+    int level;
+    int length = strlen(key);
+    int index;
+ 
+    struct TrieNode *pCrawl = root;
+ 
+    for (level = 0; level < length; level++)
+    {
+        if (key[level] == '\'')
+        {
+            index = 26;
         }
         else
         {
-            root2 = root2-> children[wordIndex];
+            index = CHAR_TO_INDEX(tolower(key[level]));
         }
-        word++;
-        if(*word == '\0')
-        {
-            if (root2 -> is_word == true)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+        if (pCrawl->children[index] == NULL)
+            pCrawl->children[index] = getNode();
+ 
+        pCrawl = pCrawl->children[index];
     }
-    //return false;
+ 
+    // mark last node as leaf
+    pCrawl->isLeaf = true;
 }
+
 
 /**
  * Loads dictionary into memory.  Returns true if successful else false.
@@ -69,8 +118,8 @@ bool load(const char* dictionary)
     countWord = malloc(sizeof(unsigned int));
     *countWord = 0;
     // TODO
-    root = malloc(sizeof(node));
-    node* root2 = root;
+    root = getNode();
+    //TrieNode* root2 = root;
     //printf("Start loading dictionary");
     FILE* fdic = fopen(dictionary, "r");
     if (fdic == NULL)
@@ -79,13 +128,19 @@ bool load(const char* dictionary)
         fclose(fdic);
         return false;
     }
-    //printf("File Opened");
+    
     char* tempHead = malloc(sizeof(char)*LENGTH);
-    char* tempWord = tempHead;
-    int wordIndex;
-    while (fscanf(fdic, "%s",tempWord) != EOF)
+    //char* tempWord = tempHead;
+    //int wordIndex;
+    // read the next word and store its pointer in tempWord
+    while (fscanf(fdic, "%s", tempHead) != EOF)
     {
-         //build the tries
+        //build the tries
+        insert(root, tempHead);
+        //free(tempWord);
+        *countWord = *countWord +1;
+        //tempWord = tempHead;
+    /**     
          while (true)
          {
              if (*tempWord == '\'')
@@ -114,10 +169,10 @@ bool load(const char* dictionary)
                  break;
              }
          }
+    **/
     }
-    //printf("load complete");
     free(tempHead);
-    //printf("tempWord freed");
+    
     fclose(fdic);
     return true;
 }
@@ -135,7 +190,7 @@ unsigned int size(void)
  * Unloads dictionary from memory.  Returns true if successful else false.
  */
 
-void freeNode(node* cursor)
+void freeNode(TrieNode* cursor)
 {
     for (int index = 0; index < 27; index++)
     {

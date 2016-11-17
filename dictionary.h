@@ -43,3 +43,20 @@ typedef struct node
     bool is_word;
     struct node* children[27];
 } node;
+
+// Trie node
+typedef struct TrieNode
+{
+    // first 26 space for alphabet
+    // last space for "'"
+     struct TrieNode *children[27];
+     
+
+     // isLeaf is true if the node represents
+     // end of a word
+     bool isLeaf;
+} TrieNode;
+
+TrieNode *getNode(void);
+
+void insert(struct TrieNode *root, const char *key);
